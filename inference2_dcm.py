@@ -266,8 +266,7 @@ def get_series_for_inference(path):
     # Here we are assuming that path is a directory that contains a full study as a collection
     # of files
     # We are reading all files into a list of PyDicom objects so that we can filter them later
-    #dicoms = []
-    #dicoms = [pydicom.dcmread(os.path.join(path, f)) for f in os.listdir(path)]
+    dicoms = [pydicom.dcmread(os.path.join(path, f)) for f in os.listdir(path)]
 
     # TASK: create a series_for_inference variable that will contain a list of only 
     # those PyDicom objects that represent files that belong to the series that you 
@@ -281,18 +280,29 @@ def get_series_for_inference(path):
     # Hint: inspect the metadata of HippoCrop series
 
     # <YOUR CODE HERE>
-    #dicoms = []
-    series_path = [dir for dir, subdirs, files in os.walk(path) if 'HCropVolume' in dir]
-    chosen_path = np.random.choice(series_path,size=int(len(series_path) > 0) ) 
-    series_for_inference = [pydicom.dcmread(os.path.join(chosen_path, f)) for f in os.listdir(chosen_path)]
-    
-    #series_for_inference = [dcm for dcm in dicoms if dcm.SeriesDescription == 'HippoCrop'] 
-    
+  #  dicoms = []
+   # for dir , subdirs, files in os.walk(path):
+     #   for subdir in subdirs:
+      #      dicoms.extend([pydicom.dcmread(os.path.join(path, subdir, f)) for f in os.listdir(os.path.join(path, subdir))])             
+            
+    # TASK: create a series_for_inference variable that will contain a list of only 
+    # those PyDicom objects that represent files that belong to the series that you 
+    # will run inference on.
+    # It is important to note that radiological modalities most often operate in terms
+    # of studies, and it will most likely be on you to establish criteria for figuring 
+    # out which one of the multiple series sent by the scanner is the one you need to feed to 
+    # your algorithm. In our case it's rather easy - we have reached an agreement with 
+    # people who configured the HippoCrop tool and they label the output of their tool in a 
+    # certain way. Can you figure out which is that? 
+    # Hint: inspect the metadata of HippoCrop series
+
+    series_for_inference = [dcm for dcm in dicoms if dcm.SeriesDescription == 'HippoCrop']            
+
     # Check if there are more than one series (using set comprehension).
     if len({f.SeriesInstanceUID for f in series_for_inference}) != 1:
         print("Error: can not figure out what series to run inference on")
-        #print(series_for_inference)
-        return []
+        print(series_for_inference)
+        return [1]
 
     return series_for_inference
 
@@ -317,10 +327,10 @@ if __name__ == "__main__":
                 os.path.isdir(os.path.join(sys.argv[1], d))]
 
     # Get the latest directory
-    study_dir = sorted(subdirs, key=lambda dir: os.stat(dir).st_mtime, reverse=True)[0]
+    study_dir='/TestVolumes/Study1/13_HCropVolume'
 
     print(f"Looking for series to run inference on in directory {study_dir}...")
-
+    
     # TASK: get_series_for_inference is not complete. Go and complete it
     volume, header = load_dicom_volume_as_numpy_from_list(get_series_for_inference(study_dir))
     print(f"Found series of {volume.shape[2]} axial slices")
